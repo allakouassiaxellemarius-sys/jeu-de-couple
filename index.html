@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💕 Quiz Amoureux</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    background: rgba(255,255,255,0.95);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 650px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(233,30,99,0.2);
+    text-align: center;
+    position: relative;
+  }
+  h1 { color: #d81b60; font-size: 2.2rem; margin-bottom: 8px; }
+  h2 { color: #880e4f; font-size: 1.3rem; font-weight: 400; margin-bottom: 20px; }
+  .heart {
+    font-size: 3rem;
+    animation: pulse 1.5s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #f48fb1;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+    margin: 6px 0;
+  }
+  input:focus { border-color: #d81b60; box-shadow: 0 0 0 3px rgba(216,27,96,0.15); }
+  .btn {
+    background: linear-gradient(135deg, #d81b60, #ad1457);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: 0.3s;
+    margin: 10px 5px;
+    font-weight: 600;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(216,27,96,0.35); }
+  .btn:active { transform: translateY(0); }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid #d81b60;
+    color: #d81b60;
+  }
+  .btn-outline:hover { background: #fce4ec; box-shadow: none; }
+  .btn-sm { padding: 10px 20px; font-size: 0.9rem; }
+  .btn-secondary { background: linear-gradient(135deg, #7b1fa2, #6a1b9a); }
+  .btn-secondary:hover { box-shadow: 0 8px 25px rgba(123,31,162,0.35); }
+  .question-box {
+    background: #fce4ec;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 15px 0;
+    text-align: left;
+  }
+  .question-box p { font-weight: 600; color: #880e4f; margin-bottom: 10px; font-size: 1.1rem; }
+  .badge {
+    display: inline-block;
+    background: #d81b60;
+    color: #fff;
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .score-card {
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 15px 0;
+  }
+  .score-card .big { font-size: 2.5rem; font-weight: 700; color: #d81b60; }
+  .result-msg {
+    font-size: 1.2rem;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 15px 0;
+    background: #fce4ec;
+    line-height: 1.6;
+  }
+  .progress-wrap {
+    background: #f8bbd0;
+    border-radius: 50px;
+    height: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #d81b60, #ad1457);
+    border-radius: 50px;
+    transition: width 0.5s ease;
+  }
+  .name-tag {
+    display: inline-block;
+    background: #f48fb1;
+    color: #fff;
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 4px;
+  }
+  .footer { margin-top: 20px; color: #888; font-size: 0.85rem; }
+  .q-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border: 1px solid #f48fb1;
+    text-align: left;
+  }
+  .juste { border-left: 4px solid #4caf50; background: #e8f5e9; }
+  .faux { border-left: 4px solid #f44336; background: #ffebee; }
+  .replay-section { margin-top: 25px; }
+  .hidden { display: none; }
+  .flex-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <!-- STEP 0: ACCUEIL -->
+  <div class="step active" id="step-accueil">
+    <div class="heart">💕</div>
+    <h1>Quiz Amoureux</h1>
+    <h2>Créez vos questions et testez votre complicité !</h2>
+    <button class="btn" onclick="demarrer()">💖 Commencer</button>
+  </div>
+
+  <!-- STEP 1: PRÉNOMS -->
+  <div class="step" id="step-prenoms">
+    <div class="badge">👫 Qui êtes-vous ?</div>
+    <h2 style="margin-bottom:16px;">Entrez vos prénoms</h2>
+    <input type="text" id="p1" placeholder="Prénom du / de la première partenaire" autocomplete="off">
+    <input type="text" id="p2" placeholder="Prénom du / de la seconde partenaire" autocomplete="off">
+    <button class="btn" onclick="saisirPrenoms()">💕 Suivant</button>
+  </div>
+
+  <!-- STEP 2: CRÉER LES QUESTIONS -->
+  <div class="step" id="step-questions">
+    <div class="badge">📝 Créez vos questions</div>
+    <h2>Écrivez ensemble les questions à poser</h2>
+    <div style="margin:10px 0;">
+      <label>Nombre de questions :</label>
+      <input type="number" id="nb-questions" value="8" min="3" max="20" style="width:80px;display:inline-block;text-align:center;">
+    </div>
+    <div id="questions-list"></div>
+    <button class="btn" onclick="genererChampsQuestions()">🔄 Générer les champs</button>
+    <button class="btn btn-secondary" onclick="validerQuestions()">✅ Questions prêtes</button>
+    <p style="color:#888;font-size:0.85rem;margin-top:10px;">Astuce : demandez des choses personnelles (goûts, souvenirs, rêves...)</p>
+  </div>
+
+  <!-- STEP 3: RÉPONSES P1 -->
+  <div class="step" id="step-rep-p1">
+    <div class="badge" id="badge-p1">🎤 Phase 1</div>
+    <h2 id="titre-rep-p1">Réponds à ces questions sur TOI-MÊME</h2>
+    <p style="color:#888;" id="avert-p1">🙈 L'autre ne regarde pas !</p>
+    <div id="rep-p1-list"></div>
+    <button class="btn" onclick="validerReponsesP1()">✅ Valider mes réponses</button>
+  </div>
+
+  <!-- STEP 4: RÉPONSES P2 -->
+  <div class="step" id="step-rep-p2">
+    <div class="badge" id="badge-p2">🎤 Phase 2</div>
+    <h2 id="titre-rep-p2">Réponds à ces questions sur TOI-MÊME</h2>
+    <p style="color:#888;" id="avert-p2">🙈 L'autre ne regarde pas !</p>
+    <div id="rep-p2-list"></div>
+    <button class="btn" onclick="validerReponsesP2()">✅ Valider mes réponses</button>
+  </div>
+
+  <!-- STEP 5: QUIZ P1 -> devine P2 -->
+  <div class="step" id="step-quiz-p1">
+    <div class="badge">🔮 Phase 3</div>
+    <h2 id="titre-quiz-p1">Devine ce que l'autre a répondu !</h2>
+    <p style="color:#888;" id="avert-quiz-p1">🙈 L'autre ne regarde pas !</p>
+    <div id="quiz-p1-list"></div>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-p1" style="width:0%"></div></div>
+    <button class="btn" onclick="validerQuizP1()">✅ Voir mes résultats</button>
+  </div>
+
+  <!-- STEP 6: QUIZ P2 -> devine P1 -->
+  <div class="step" id="step-quiz-p2">
+    <div class="badge">🔮 Phase 4</div>
+    <h2 id="titre-quiz-p2">Devine ce que l'autre a répondu !</h2>
+    <p style="color:#888;" id="avert-quiz-p2">🙈 L'autre ne regarde pas !</p>
+    <div id="quiz-p2-list"></div>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-p2" style="width:0%"></div></div>
+    <button class="btn" onclick="validerQuizP2()">✅ Voir mes résultats</button>
+  </div>
+
+  <!-- STEP 7: RÉSULTATS -->
+  <div class="step" id="step-resultats">
+    <div class="heart">💞</div>
+    <h1>Résultat</h1>
+    <div id="resultat-content"></div>
+    <div class="replay-section">
+      <button class="btn" onclick="rejouer()">🔄 Rejouer</button>
+    </div>
+    <div class="footer">💕 Fait avec amour</div>
+  </div>
+</div>
+
+<script>
+// ----- ÉTAT GLOBAL -----
+let etat = {
+  p1: '',
+  p2: '',
+  questions: [],
+  reponsesP1: [],
+  reponsesP2: [],
+  quizP1: [],
+  quizP2: [],
+  scoreP1: 0,
+  scoreP2: 0,
+};
+
+// ----- NAVIGATION -----
+function montre(stepId) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(stepId).classList.add('active');
+}
+
+function demarrer() { montre('step-prenoms'); }
+
+// ----- PRÉNOMS -----
+function saisirPrenoms() {
+  const p1 = document.getElementById('p1').value.trim();
+  const p2 = document.getElementById('p2').value.trim();
+  if (!p1 || !p2) { alert('Veuillez entrer vos deux prénoms !'); return; }
+  etat.p1 = p1.charAt(0).toUpperCase() + p1.slice(1).toLowerCase();
+  etat.p2 = p2.charAt(0).toUpperCase() + p2.slice(1).toLowerCase();
+  genererChampsQuestions();
+  montre('step-questions');
+}
+
+// ----- QUESTIONS -----
+function genererChampsQuestions() {
+  const nb = parseInt(document.getElementById('nb-questions').value) || 8;
+  if (nb < 3) nb = 3; if (nb > 20) nb = 20;
+  const container = document.getElementById('questions-list');
+  container.innerHTML = '';
+  for (let i = 1; i <= nb; i++) {
+    const div = document.createElement('div');
+    div.className = 'q-item';
+    div.innerHTML = `<strong>Q${i} :</strong> <input type="text" id="q-${i}" placeholder="Écrivez votre question ici..." style="border:none;padding:8px 0;width:90%;margin:0;" autocomplete="off">`;
+    container.appendChild(div);
+  }
+}
+
+function validerQuestions() {
+  const nb = parseInt(document.getElementById('nb-questions').value) || 8;
+  const questions = [];
+  for (let i = 1; i <= nb; i++) {
+    const q = document.getElementById('q-' + i).value.trim();
+    if (!q) { alert(`La question ${i} est vide. Remplissez-la ou ajustez le nombre.`); return; }
+    questions.push(q);
+  }
+  etat.questions = questions;
+  lancerReponsesP1();
+}
+
+// ----- RÉPONSES P1 -----
+function lancerReponsesP1() {
+  document.getElementById('badge-p1').textContent = `🎤 ${etat.p1} répond sur toi-même`;
+  document.getElementById('titre-rep-p1').textContent = `${etat.p1}, réponds à ces questions sur TOI-MÊME`;
+  document.getElementById('avert-p1').textContent = `🙈 ${etat.p2} ne regarde pas !`;
+
+  const container = document.getElementById('rep-p1-list');
+  container.innerHTML = '';
+  etat.questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question-box';
+    div.innerHTML = `<p>📝 Question ${i+1} : ${q}</p><input type="text" id="r1-${i}" placeholder="Ta réponse..." autocomplete="off">`;
+    container.appendChild(div);
+  });
+  montre('step-rep-p1');
+}
+
+function validerReponsesP1() {
+  const reponses = [];
+  for (let i = 0; i < etat.questions.length; i++) {
+    const r = document.getElementById('r1-' + i).value.trim();
+    if (!r) { alert(`Réponse à la question ${i+1} vide !`); return; }
+    reponses.push(r);
+  }
+  etat.reponsesP1 = reponses;
+  lancerReponsesP2();
+}
+
+// ----- RÉPONSES P2 -----
+function lancerReponsesP2() {
+  document.getElementById('badge-p2').textContent = `🎤 ${etat.p2} répond sur toi-même`;
+  document.getElementById('titre-rep-p2').textContent = `${etat.p2}, réponds à ces questions sur TOI-MÊME`;
+  document.getElementById('avert-p2').textContent = `🙈 ${etat.p1} ne regarde pas !`;
+
+  const container = document.getElementById('rep-p2-list');
+  container.innerHTML = '';
+  etat.questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question-box';
+    div.innerHTML = `<p>📝 Question ${i+1} : ${q}</p><input type="text" id="r2-${i}" placeholder="Ta réponse..." autocomplete="off">`;
+    container.appendChild(div);
+  });
+  montre('step-rep-p2');
+}
+
+function validerReponsesP2() {
+  const reponses = [];
+  for (let i = 0; i < etat.questions.length; i++) {
+    const r = document.getElementById('r2-' + i).value.trim();
+    if (!r) { alert(`Réponse à la question ${i+1} vide !`); return; }
+    reponses.push(r);
+  }
+  etat.reponsesP2 = reponses;
+  lancerQuizP1();
+}
+
+// ----- QUIZ P1 -----
+function lancerQuizP1() {
+  document.getElementById('titre-quiz-p1').textContent = `${etat.p1}, devine ce que ${etat.p2} a répondu !`;
+  document.getElementById('avert-quiz-p1').textContent = `🙈 ${etat.p2} ne regarde pas !`;
+  document.getElementById('progress-p1').style.width = '0%';
+
+  const container = document.getElementById('quiz-p1-list');
+  container.innerHTML = '';
+  etat.questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question-box';
+    div.innerHTML = `<p>❓ Question ${i+1} : ${q}</p><input type="text" id="q1-${i}" placeholder="${etat.p2} a répondu..." autocomplete="off">`;
+    container.appendChild(div);
+  });
+  etat.quizP1 = [];
+  montre('step-quiz-p1');
+}
+
+function validerQuizP1() {
+  const devinees = [];
+  for (let i = 0; i < etat.questions.length; i++) {
+    const d = document.getElementById('q1-' + i).value.trim();
+    if (!d) { alert(`Devinette ${i+1} vide !`); return; }
+    devinees.push(d);
+  }
+
+  // Calcul score et affichage
+  const container = document.getElementById('quiz-p1-list');
+  let score = 0;
+  for (let i = 0; i < etat.questions.length; i++) {
+    const juste = etat.reponsesP2[i];
+    const bon = devinees[i].toLowerCase() === juste.toLowerCase();
+    if (bon) score++;
+    const div = container.children[i];
+    div.className = 'question-box ' + (bon ? 'juste' : 'faux');
+    div.innerHTML = `<p>❓ Question ${i+1} : ${etat.questions[i]}</p>
+                     <p>📤 Ta réponse : ${devinees[i]}</p>
+                     <p>${bon ? '✅' : '❌'} ${etat.p2} avait répondu : <strong>${juste}</strong></p>`;
+  }
+  etat.scoreP1 = score;
+  document.getElementById('progress-p1').style.width = '100%';
+
+  // Ajouter le score et bouton
+  const footer = document.createElement('div');
+  footer.style.marginTop = '15px';
+  footer.innerHTML = `<div class="score-card">🎯 <span class="big">${score}/${etat.questions.length}</span></div>`;
+  container.appendChild(footer);
+
+  // Désactiver bouton, ajouter suivant
+  const btn = document.querySelector('#step-quiz-p1 .btn');
+  btn.style.display = 'none';
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn btn-secondary';
+  nextBtn.textContent = `👉 Au tour de ${etat.p2}`;
+  nextBtn.onclick = lancerQuizP2;
+  container.appendChild(nextBtn);
+}
+
+// ----- QUIZ P2 -----
+function lancerQuizP2() {
+  document.getElementById('titre-quiz-p2').textContent = `${etat.p2}, devine ce que ${etat.p1} a répondu !`;
+  document.getElementById('avert-quiz-p2').textContent = `🙈 ${etat.p1} ne regarde pas !`;
+  document.getElementById('progress-p2').style.width = '0%';
+
+  const container = document.getElementById('quiz-p2-list');
+  container.innerHTML = '';
+  etat.questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question-box';
+    div.innerHTML = `<p>❓ Question ${i+1} : ${q}</p><input type="text" id="q2-${i}" placeholder="${etat.p1} a répondu..." autocomplete="off">`;
+    container.appendChild(div);
+  });
+  montre('step-quiz-p2');
+}
+
+function validerQuizP2() {
+  const devinees = [];
+  for (let i = 0; i < etat.questions.length; i++) {
+    const d = document.getElementById('q2-' + i).value.trim();
+    if (!d) { alert(`Devinette ${i+1} vide !`); return; }
+    devinees.push(d);
+  }
+
+  const container = document.getElementById('quiz-p2-list');
+  let score = 0;
+  for (let i = 0; i < etat.questions.length; i++) {
+    const juste = etat.reponsesP1[i];
+    const bon = devinees[i].toLowerCase() === juste.toLowerCase();
+    if (bon) score++;
+    const div = container.children[i];
+    div.className = 'question-box ' + (bon ? 'juste' : 'faux');
+    div.innerHTML = `<p>❓ Question ${i+1} : ${etat.questions[i]}</p>
+                     <p>📤 Ta réponse : ${devinees[i]}</p>
+                     <p>${bon ? '✅' : '❌'} ${etat.p1} avait répondu : <strong>${juste}</strong></p>`;
+  }
+  etat.scoreP2 = score;
+  document.getElementById('progress-p2').style.width = '100%';
+
+  const footer = document.createElement('div');
+  footer.style.marginTop = '15px';
+  footer.innerHTML = `<div class="score-card">🎯 <span class="big">${score}/${etat.questions.length}</span></div>`;
+  container.appendChild(footer);
+
+  const btn = document.querySelector('#step-quiz-p2 .btn');
+  btn.style.display = 'none';
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn';
+  nextBtn.textContent = '🏆 Voir le résultat final';
+  nextBtn.onclick = afficherResultats;
+  container.appendChild(nextBtn);
+}
+
+// ----- RÉSULTATS -----
+function afficherResultats() {
+  const s1 = etat.scoreP1, s2 = etat.scoreP2;
+  const t = etat.questions.length;
+  const pct1 = Math.round(s1/t*100);
+  const pct2 = Math.round(s2/t*100);
+  const pctC = Math.round((s1+s2)/(t*2)*100);
+
+  let msg = '';
+  if (pctC >= 90) msg = '🏆 ÂMES SŒURS ! Vous êtes faits l\'un pour l\'autre ! 💖';
+  else if (pctC >= 75) msg = '💕 EXCELLENT ! Une très belle complicité !';
+  else if (pctC >= 50) msg = '💗 PAS MAL ! Il reste des choses à découvrir...';
+  else if (pctC >= 30) msg = '💔 Il est temps de mieux se connaître !';
+  else msg = '😅 Allez, un petit café et on parle ?';
+
+  let compar = '';
+  if (s1 > s2) compar = `👑 ${etat.p1} connaît mieux ${etat.p2} que l'inverse !`;
+  else if (s2 > s1) compar = `👑 ${etat.p2} connaît mieux ${etat.p1} que l'inverse !`;
+  else compar = '🤝 ÉGALITÉ ! Vous vous connaissez aussi bien l\'un que l\'autre !';
+
+  document.getElementById('resultat-content').innerHTML = `
+    <div class="score-card">
+      <div class="flex-row">
+        <div><span class="name-tag">${etat.p1}</span> 🎯 ${s1}/${t} (${pct1}%)</div>
+        <div style="font-size:1.5rem;">💞</div>
+        <div><span class="name-tag">${etat.p2}</span> 🎯 ${s2}/${t} (${pct2}%)</div>
+      </div>
+    </div>
+    <div class="result-msg">${msg}</div>
+    <div style="font-size:1.1rem;font-weight:600;color:#880e4f;">${compar}</div>
+    <div style="margin-top:20px;padding:15px;background:#f3e5f5;border-radius:16px;">
+      <p style="font-size:0.95rem;color:#6a1b9a;">💞 <strong>${etat.p1} + ${etat.p2}</strong> = ❤️ AMOUR ❤️</p>
+    </div>
+  `;
+  montre('step-resultats');
+}
+
+// ----- REJOUER -----
+function rejouer() {
+  if (!confirm('Recommencer ? (nouvelles questions, nouveaux scores)')) return;
+  etat = { p1: '', p2: '', questions: [], reponsesP1: [], reponsesP2: [], quizP1: [], quizP2: [], scoreP1: 0, scoreP2: 0 };
+  document.getElementById('p1').value = '';
+  document.getElementById('p2').value = '';
+  montre('step-accueil');
+}
+
+// ----- INIT -----
+document.addEventListener('DOMContentLoaded', () => genererChampsQuestions());
+</script>
+</body>
+</html>
